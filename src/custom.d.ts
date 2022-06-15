@@ -17,7 +17,7 @@ type RecordItem = {
 }
 type Tag = {
     id:string
-    name:string | undefined
+    name:string
     type:string
 }
 type TagListModel = {
