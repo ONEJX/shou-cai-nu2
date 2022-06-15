@@ -1,0 +1,24 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+a{
+  text-decoration: none;
+  color:#333;
+}
+ul,ol{
+  list-style-type: none;
+}
+:focus{
+  outline: none;
+}
+body{
+  ::-webkit-scrollbar { width: 0 !important }
+  background: #FBFFFF;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color:#333;
+  line-height: 1.5;
+  overflow: hidden;
+}
