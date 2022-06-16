@@ -92,6 +92,7 @@
       display: flex;
       justify-content: start;
       align-items: center;
+      margin-left: auto;
       >label{
         color: grey;
         margin-right: 20px;

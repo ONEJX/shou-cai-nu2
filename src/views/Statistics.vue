@@ -16,9 +16,8 @@
    @Component({
      components:{TopNav}
    })
-    export default  class Labels extends Vue{
+    export default class Statistics extends Vue{
     }
 </script>
 <style lang="scss" scoped>
-
 </style>

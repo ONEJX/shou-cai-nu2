@@ -1,6 +1,15 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
+const { VantResolver } = require('unplugin-vue-components/resolvers');
+const ComponentsPlugin = require('unplugin-vue-components/webpack');
 const path = require('path')
 module.exports = {
+  configureWebpack: {
+    plugins: [
+      ComponentsPlugin({
+        resolvers: [VantResolver()],
+      }),
+    ],
+  },
   publicPath: process.env.NODE_ENV === 'production'
     ? '/shou-cai-nu2-website/'
     : '/'  ,

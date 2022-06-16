@@ -3,16 +3,26 @@
     <TopNav>
       <template v-slot:titleCenter>守财奴</template>
       <template v-slot:left>
-        <span>2022年</span>
-        <span>日期</span>
+        <span class="small">{{year}}年</span>
+        <span @click="showPopup" class="month"><label>{{month}}</label>月</span>
+        <van-popup v-model:show="show" position="bottom">
+          <van-datetime-picker
+              v-model="currentDate"
+              type="year-month"
+              title="选择年月日"
+              :min-date="minDate"
+              :max-date="maxDate"
+              @confirm="confirm"
+          />
+        </van-popup>
       </template>
       <template v-slot:center>
-        <span>收入</span>
-        <span>20.00</span>
+        <span class="small">收入</span>
+        <span class="big">{{monthlyIncome===0?'0.00':monthlyIncome}}</span>
       </template>
       <template v-slot:right>
-        <span>支出</span>
-        <span>0.00</span>
+        <span class="small">支出</span>
+        <span class="big">{{monthlyExpenditure===0?'0.00':monthlyExpenditure}}</span>
       </template>
     </TopNav>
     <ol class="xxx" v-if="groupList.length>0">
@@ -35,7 +45,7 @@
         </ol>
       </li>
     </ol>
-    <div class="noResult" v-else>暂时没有账目可以显示哦</div>
+    <div class="noResult" v-else>本月没有账目记录</div>
   </Layout>
 </template>
 
@@ -45,10 +55,31 @@
   import dayjs from "dayjs";
   import clone from '@/lib/clone';
   import TopNav from "@/components/TopNav.vue";
+  const isoWeek = require('dayjs/plugin/isoWeek')
+  dayjs.extend(isoWeek)
   @Component({
     components:{TopNav}
     })
   export default class Statistics extends Vue {
+    selectDate = new Date()
+    year = dayjs().format('YYYY')
+    month = dayjs().format('MM')
+    week = ''
+    show:boolean = false
+    currentDate = new Date()
+    minDate = new Date(2010,0,1)
+    maxDate = new Date(2025,10,1)
+    confirm(value:Date){
+      const arr = dayjs(value).format('YYYY-MM').split('-')
+      this.selectDate = value
+      this.year = arr[0]
+      this.month = arr[1]
+      this.show = false
+    }
+    showPopup(){
+      this.show = true
+    }
+    //-------------------------------------
     beforeCreate(){
       this.$store.commit('fetchRecords')
     }
@@ -56,20 +87,20 @@
       return (this.$store.state as RootState).recordList
     }
     get groupList(){
-      type Result = {title:string,expenditure?:number,income?:number,items:RecordItem[]}[]
+      type Result = {title:string,expenditure:number,income:number,items:RecordItem[]}[]
       const {recordList} = this
-      const newList = clone(recordList).sort((a,b)=>dayjs(b.createAt).valueOf() - dayjs(a.createAt).valueOf())
+      const newList = clone(recordList).filter(item=>dayjs(item.createAt).isSame(dayjs(this.selectDate),'month'))
+        .sort((a,b)=>dayjs(b.createAt).valueOf() - dayjs(a.createAt).valueOf())
      
       if(newList.length === 0) return []
-      const result:Result = [{title:dayjs(newList[0].createAt).format('YYYY-MM-DD'),items:[newList[0]]}]
-      
+      const result:Result = [{title:dayjs(newList[0].createAt).format('YYYY-MM-DD'),expenditure:0,income:0,items:[newList[0]]}]
       for(let i = 1;i<newList.length;i++){
           const current = newList[i]
           const last = result[result.length - 1]
         if(dayjs(last.title).isSame(dayjs(current.createAt),'day')){
           last.items.push(current)
         }else{
-          result.push({title:dayjs(current.createAt).format('YYYY-MM-DD'),items:[current]})
+          result.push({title:dayjs(current.createAt).format('YYYY-MM-DD'),expenditure:0,income:0,items:[current]})
         }
       }
       result.map(g=>{
@@ -80,6 +111,12 @@
       })
       return result
     }
+    get monthlyExpenditure(){//月支出
+      return this.groupList.reduce((sum,item)=>sum+item.expenditure,0)
+    }
+    get monthlyIncome(){//月收入
+      return this.groupList.reduce((sum,item)=>sum+item.income,0)
+    }
     beautiful(string:string){//美化日期 显示 今天 昨天
       const now = dayjs()
       if(dayjs(string).isSame(now,'day')){
@@ -88,10 +125,32 @@
         return '昨天'
       }else if(dayjs(string).isSame(now.subtract(2,'day'),'day')){
         return '前天'
-      }else if(dayjs(string).isSame(now,'year')){
-        return dayjs(string).format('M月DD日')
       }else{
-        return dayjs(string).format('YYYY年M月DD日')
+        switch(dayjs(string).isoWeekday()){
+          case 1:
+            this.week = '星期一'
+            break;
+          case 2:
+            this.week = '星期二'
+            break;
+          case 3:
+            this.week = '星期三'
+            break;
+          case 4:
+            this.week = '星期四'
+            break;
+          case 5:
+            this.week = '星期五'
+            break;
+          case 6:
+            this.week = '星期六'
+            break;
+          case 7:
+            this.week = '星期日'
+            break;
+            default:break
+        }
+        return dayjs(string).format(`MM月DD日 ${this.week}`)
       }
     }
     updateRecord(item:RecordItem){
@@ -183,5 +242,31 @@
     padding: 5px;
     border-radius: 50%;
     background:#FFDA44
+  }
+  .small{
+    font-size: 14px;
+    color: grey;
+  }
+  .big{
+    font-size: 20px;
+  }
+  .month{
+    position: relative;
+    >label{
+      font-size: 24px;
+      padding-right: 2px;
+    }
+    &::after{
+      content: '';
+      border-left:6px solid transparent;
+      border-right:6px solid transparent;
+      border-top:10px solid black;
+      border-bottom:10px solid transparent;
+      height: 0;
+      width: 0;
+      position: absolute;
+      right: -20px;
+      top: 15px;
+    }
   }
 </style>
