@@ -46,6 +46,8 @@
       </li>
     </ol>
     <div class="noResult" v-else>本月没有账目记录</div>
+    
+    <QRCode v-if="mask===0"/>
   </Layout>
 </template>
 
@@ -55,12 +57,31 @@
   import dayjs from "dayjs";
   import clone from '@/lib/clone';
   import TopNav from "@/components/TopNav.vue";
+  import QRCode from "@/components/QRCode.vue";
   const isoWeek = require('dayjs/plugin/isoWeek')
   dayjs.extend(isoWeek)
   @Component({
-    components:{TopNav}
+    components:{TopNav,QRCode}
     })
   export default class Statistics extends Vue {
+    beforeCreate(){
+      this.$store.commit('fetchRecords')
+    }
+    mounted(){
+      if(document.documentElement.clientWidth > 500){
+        if(this.$store.state.mask === 0){
+          window.alert('为提升用户体验 请用手机打开')
+        }
+        return
+      }else{
+        this.$store.state.mask=1
+      }
+    }
+    get mask(){//遮罩层
+      return this.$store.state.mask
+    }
+  
+    //------------------------------------------
     selectDate = new Date()
     year = dayjs().format('YYYY')
     month = dayjs().format('MM')
@@ -79,10 +100,7 @@
     showPopup(){
       this.show = true
     }
-    //-------------------------------------
-    beforeCreate(){
-      this.$store.commit('fetchRecords')
-    }
+    //----------------------------------------------
     get recordList(){
       return (this.$store.state as RootState).recordList
     }
@@ -126,6 +144,7 @@
       }else if(dayjs(string).isSame(now.subtract(2,'day'),'day')){
         return '前天'
       }else{
+        // @ts-ignore
         switch(dayjs(string).isoWeekday()){
           case 1:
             this.week = '星期一'

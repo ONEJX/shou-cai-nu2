@@ -10,6 +10,7 @@ declare module '@vue/runtime-core' {
     Nav: typeof import('./src/components/Nav.vue')['default']
     NotFound: typeof import('./src/components/NotFound.vue')['default']
     NumberPad: typeof import('./src/components/Money/NumberPad.vue')['default']
+    QRCode: typeof import('./src/components/QRCode.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Tags: typeof import('./src/components/Money/Tags.vue')['default']

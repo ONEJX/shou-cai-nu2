@@ -24,6 +24,11 @@
     beforeCreate(){
       this.$store.commit('fetchRecords')
     }
+    mounted(){ //修复移动端软键盘带来的影响
+      const money = <HTMLElement>document.querySelector('.money')
+      const body = <HTMLElement>document.querySelector('body')
+      money.style.height = body.clientHeight + 'px'
+    }
     get updateRecord():RecordItem{
       this.$store.commit('findRecord',this.updateId)
       return this.$store.state.updateRecord
